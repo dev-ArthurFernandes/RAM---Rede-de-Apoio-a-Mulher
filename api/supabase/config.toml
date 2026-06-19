@@ -1,0 +1,4 @@
+project_id = "ram-app"
+
+[functions.triagem-submit]
+verify_jwt = false

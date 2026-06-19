@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /tmp)",
+      "Bash(rm -rf ram-app2)",
+      "Bash(npx --yes create-expo-app@latest ram-app2 --template blank-typescript)",
+      "Bash(cd \"c:\\\\Users\\\\Usuario\\\\www\\\\projects\\\\RAM---Rede-de-Apoio-a-Mulher\" && rm -rf node_modules)",
+      "Bash(ls -la /tmp/ram-app2 2>/dev/null | head -30; echo \"---\"; ls -la /tmp/ram-app2/node_modules 2>/dev/null | wc -l)",
+      "Read(//tmp/**)",
+      "Read(//tmp/ram-app2/**)",
+      "Bash(npx expo *)",
+      "WebFetch(domain:docs.expo.dev)",
+      "WebFetch(domain:www.nativewind.dev)",
+      "WebFetch(domain:nativewind.dev)",
+      "Bash(npm install *)",
+      "Bash(node -e \"require\\('nativewind/babel'\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/nativewind/babel'\\); console.log\\(typeof p, Object.keys\\(p || {}\\)\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/babel-preset-expo'\\); console.log\\(typeof p\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/react-native-css-interop/babel'\\); console.log\\(typeof p, JSON.stringify\\(p && p\\({api:{cache:\\(\\)=>{}}}\\) || 'fn result', null, 2\\).substring\\(0, 200\\)\\)\")",
+      "Bash(mkdir -p api)",
+      "Bash(npx -y supabase@latest init --workdir .)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Usuario\\www\\projects\\RAM---Rede-de-Apoio-a-Mulher\\node_modules"
+    ]
+  },
+  "enabledPlugins": {
+    "expo@claude-plugins-official": true
+  }
+}
