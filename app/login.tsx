@@ -37,7 +37,7 @@ export default function Login() {
       setError(translateAuthError(signInError.message));
       return;
     }
-    router.replace('/(app)/home');
+    router.replace('/(app)/calendario-menstrual');
   }
 
   return (
@@ -76,16 +76,6 @@ export default function Login() {
                 <Input label="Senha" placeholder="••••••••" secureTextEntry value={senha} onChangeText={setSenha} />
                 {error && <Text className="text-emergency text-sm">{error}</Text>}
                 <PrimaryButton label={loading ? 'Entrando...' : 'Entrar'} onPress={handleEntrar} disabled={loading} />
-                <View className="flex-row items-center gap-3">
-                  <View className="flex-1 h-px bg-gray-200" />
-                  <Text className="text-text-sub text-xs">OU</Text>
-                  <View className="flex-1 h-px bg-gray-200" />
-                </View>
-                <PrimaryButton
-                  label="📷  Entrar com Reconhecimento Facial"
-                  variant="outline"
-                  onPress={() => router.push('/reconhecimento-facial')}
-                />
                 <TouchableOpacity className="items-center">
                   <Text className="text-text-sub text-sm">Esqueci minha senha</Text>
                 </TouchableOpacity>

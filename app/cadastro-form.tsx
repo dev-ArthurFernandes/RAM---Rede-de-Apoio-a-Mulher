@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platfor
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Linking from 'expo-linking';
 import { RAMLogo } from '../components/RAMLogo';
 import { Input } from '../components/Input';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -74,6 +75,7 @@ export default function CadastroForm() {
       email: email.trim(),
       password: senha,
       options: {
+        emailRedirectTo: Linking.createURL('login'),
         data: {
           tipo,
           nome: nome.trim(),

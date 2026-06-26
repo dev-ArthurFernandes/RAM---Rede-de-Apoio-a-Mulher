@@ -22,6 +22,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 export function routeForTipo(tipo: UserTipo | null | undefined) {
   if (tipo === 'advogado' || tipo === 'estudante_direito') return '/portal-npj' as const;
   if (tipo === 'estudante_psicologia') return '/portal-psicologia' as const;
+  if (tipo === 'usuaria') return '/calendario-menstrual' as const;
   return '/home' as const;
 }
 

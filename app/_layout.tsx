@@ -17,7 +17,6 @@ export default function RootLayout() {
           <Stack.Screen name="login-profissional" />
           <Stack.Screen name="cadastro" />
           <Stack.Screen name="cadastro-form" />
-          <Stack.Screen name="reconhecimento-facial" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="(app)" options={{ headerShown: false }} />
         </Stack>
       </View>

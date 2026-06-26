@@ -67,6 +67,10 @@ function cycleDayFor(config: CicloConfig, date: Date): number {
   return ((diff % config.duracaoCiclo) + config.duracaoCiclo) % config.duracaoCiclo;
 }
 
+export function cycleDayDentroDaMenstruacao(config: CicloConfig, date: Date): boolean {
+  return cycleDayFor(config, date) < config.duracaoMenstruacao;
+}
+
 export type FaseDetalhada = 'menstruacao' | 'folicular' | 'fertil' | 'ovulacao' | 'lutea' | 'tpm';
 
 const fasesDetalhadas: Record<FaseDetalhada, { label: string; icon: string }> = {
@@ -98,27 +102,36 @@ export function getDiasParaProximaMenstruacao(config: CicloConfig, hoje: Date): 
   return config.duracaoCiclo - cycleDay;
 }
 
-export type FaseCalendario = 'menstruacao' | 'fertil' | 'ovulacao' | 'tpm' | 'regular';
+export type FaseCalendario =
+  | 'menstruacao-registrada'
+  | 'menstruacao-prevista'
+  | 'fertil'
+  | 'ovulacao'
+  | 'tpm'
+  | 'regular';
 
-export function getFaseCalendario(config: CicloConfig, date: Date): FaseCalendario {
+export function getFaseCalendario(config: CicloConfig, date: Date, hoje: Date): FaseCalendario {
   const { fase } = getFaseAtual(config, date);
   if (fase === 'folicular' || fase === 'lutea') return 'regular';
+  if (fase === 'menstruacao') return diffInDays(date, hoje) <= 0 ? 'menstruacao-registrada' : 'menstruacao-prevista';
   return fase;
 }
 
 export const faseCalendarioCor: Record<FaseCalendario, string> = {
-  menstruacao: 'bg-accent',
+  'menstruacao-registrada': 'bg-accent-dark',
+  'menstruacao-prevista': 'bg-accent/30',
   fertil: 'bg-primary-light',
   ovulacao: 'bg-primary',
-  tpm: 'bg-accent/20',
+  tpm: 'bg-rose-100',
   regular: '',
 };
 
 export const faseCalendarioTexto: Record<FaseCalendario, string> = {
-  menstruacao: 'text-white',
+  'menstruacao-registrada': 'text-white',
+  'menstruacao-prevista': 'text-accent-dark',
   fertil: 'text-white',
   ovulacao: 'text-white',
-  tpm: 'text-accent-dark',
+  tpm: 'text-rose-600',
   regular: 'text-text-main',
 };
 
@@ -127,13 +140,85 @@ export interface DiaCalendario {
   fase: FaseCalendario;
 }
 
-export function getDiasDoMes(config: CicloConfig, ano: number, mes: number): DiaCalendario[] {
+export function getDiasDoMes(config: CicloConfig, ano: number, mes: number, hoje: Date): DiaCalendario[] {
   const totalDias = new Date(ano, mes + 1, 0).getDate();
   const dias: DiaCalendario[] = [];
   for (let dia = 1; dia <= totalDias; dia++) {
-    dias.push({ dia, fase: getFaseCalendario(config, new Date(ano, mes, dia)) });
+    dias.push({ dia, fase: getFaseCalendario(config, new Date(ano, mes, dia), hoje) });
   }
   return dias;
+}
+
+export interface PrevisaoCiclo {
+  inicio: string;
+  fim: string;
+  ovulacao: string;
+  duracaoMenstruacao: number;
+}
+
+export function getPrevisoesCiclos(config: CicloConfig, quantidade = 3): PrevisaoCiclo[] {
+  const anchor = fromISODate(config.ultimaMenstruacao);
+  const diaOvulacao = config.duracaoCiclo - FASE_LUTEA;
+  const previsoes: PrevisaoCiclo[] = [];
+
+  for (let n = 1; n <= quantidade; n++) {
+    const inicio = addDays(anchor, n * config.duracaoCiclo);
+    const fim = addDays(inicio, config.duracaoMenstruacao - 1);
+    const ovulacao = addDays(inicio, diaOvulacao);
+    previsoes.push({
+      inicio: toISODate(inicio),
+      fim: toISODate(fim),
+      ovulacao: toISODate(ovulacao),
+      duracaoMenstruacao: config.duracaoMenstruacao,
+    });
+  }
+
+  return previsoes;
+}
+
+export type HumorTipo = 'otimo' | 'bem' | 'normal' | 'mal' | 'pessimo';
+
+export const HUMORES: { key: HumorTipo; label: string; icon: string; color: string }[] = [
+  { key: 'otimo', label: 'Ótimo', icon: '😄', color: 'text-green-600' },
+  { key: 'bem', label: 'Bem', icon: '🙂', color: 'text-green-500' },
+  { key: 'normal', label: 'Normal', icon: '😐', color: 'text-yellow-600' },
+  { key: 'mal', label: 'Mal', icon: '🙁', color: 'text-orange-500' },
+  { key: 'pessimo', label: 'Péssimo', icon: '😣', color: 'text-red-600' },
+];
+
+export const SINTOMAS: { key: string; label: string; icon: string }[] = [
+  { key: 'colica', label: 'Cólica', icon: '⚡' },
+  { key: 'dor_cabeca', label: 'Dor de cabeça', icon: '🤕' },
+  { key: 'inchaco', label: 'Inchaço', icon: '🫧' },
+  { key: 'cansaco', label: 'Cansaço', icon: '😴' },
+  { key: 'acne', label: 'Acne', icon: '🔴' },
+  { key: 'sensibilidade_seios', label: 'Sensib. seios', icon: '💗' },
+];
+
+export interface RegistroDia {
+  menstruada: boolean;
+  humor: HumorTipo | null;
+  sintomas: string[];
+}
+
+function registroPadrao(): RegistroDia {
+  return { menstruada: false, humor: null, sintomas: [] };
+}
+
+const STORAGE_PREFIX_REGISTRO = '@ram/ciclo-registro';
+
+export async function carregarRegistroDia(userId: string, dataISO: string): Promise<RegistroDia> {
+  try {
+    const raw = await AsyncStorage.getItem(`${STORAGE_PREFIX_REGISTRO}/${userId}/${dataISO}`);
+    if (!raw) return registroPadrao();
+    return { ...registroPadrao(), ...JSON.parse(raw) } as RegistroDia;
+  } catch {
+    return registroPadrao();
+  }
+}
+
+export async function salvarRegistroDia(userId: string, dataISO: string, registro: RegistroDia): Promise<void> {
+  await AsyncStorage.setItem(`${STORAGE_PREFIX_REGISTRO}/${userId}/${dataISO}`, JSON.stringify(registro));
 }
 
 export function getPrimeiroDiaSemana(ano: number, mes: number): number {
